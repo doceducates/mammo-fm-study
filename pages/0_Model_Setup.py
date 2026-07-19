@@ -1,7 +1,7 @@
 import streamlit as st
 from model.loader import (
     weights_present, weights_size_mb, download_weights,
-    device_info, get_model, DEFAULT_WEIGHTS,
+    device_info, get_model, DEFAULT_WEIGHTS, head_present,
 )
 
 st.title("⚙️ Model Setup")
@@ -83,3 +83,16 @@ if st.session_state.get("model_loaded"):
     st.success("✅ Model is currently loaded and ready for inference.")
 else:
     st.caption("Model not loaded yet. It will also auto-load on first inference.")
+
+# ----------------------------------------------------- 4. Cancer head status
+st.subheader("4. Cancer head (malignancy classifier)")
+if head_present():
+    st.success("✅ Cancer head found — the app can output malignancy scores.")
+else:
+    st.warning(
+        "No cancer head yet. Mammo-FM alone only extracts features; it does "
+        "not output cancer/benign by itself. To create the head:\n\n"
+        "1. Put labeled images in `data/labeled/malignant/` and "
+        "`data/labeled/benign/`.\n"
+        "2. Run `python train_linear_probe.py` once.\n"
+        "3. Come back and press *Load / warm up model*.")

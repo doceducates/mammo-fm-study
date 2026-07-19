@@ -17,6 +17,43 @@ histopathology at PGMI / Lahore General Hospital, Department of Radiology.
   accuracy (Wilson 95% CI), ROC/AUC, Cohen's kappa vs radiologist BI-RADS.
 - **Two storage backends** - simple `results.csv` (default) OR a normalised
   **SQLite** database (`db/schema.sql`) that also supports Mammo-CLIP comparison.
+- **Batch Import** - point at a folder of mammograms and score them all at once.
+- **Exports + SPSS verification** - metrics summary, SPSS-ready CSV, and a step-
+  by-step guide (SPSS_VERIFICATION.md) to reproduce every number in SPSS/MedCalc.
+
+## In plain English: what does the model output?
+
+Mammo-FM is a *feature extractor*, not a ready-made cancer detector. On its own
+it turns each mammogram into a list of numbers (an "embedding") describing the
+image - it does NOT say "cancer" or "benign" by itself.
+
+To get a malignancy score you do this ONCE:
+1. Collect labeled images (histopathology-proven benign vs malignant).
+2. Run `python train_linear_probe.py` - this trains a tiny classifier on top.
+
+After that, the app outputs a **malignancy probability between 0 and 1**
+(e.g. 0.87 = 87% suspicious). Default threshold is 0.5: >=0.5 -> "Malignant".
+
+## How to add your data (DICOM / PNG / JPG / whole folders)
+
+No renaming or special structure needed:
+
+**Option A - one folder for everything (best for bulk):**
+1. Copy ALL your mammograms into `data/incoming/` (subfolders are fine).
+2. Open the app -> **Batch Import** page -> *Scan folder* -> *Run*.
+3. It anonymizes + scores every image and logs the results automatically.
+
+**Option B - one image at a time:**
+Use the **Inference & Logging** page and upload a single DICOM/PNG/JPG.
+
+**For TRAINING the cancer head**, sort labeled images into:
+```
+data/labeled/malignant/   <- histopathology-proven cancers
+data/labeled/benign/      <- histopathology-proven benign
+```
+then run `python train_linear_probe.py`.
+
+DICOM files are anonymized on load (patient name / ID / dates are stripped).
 
 ## Project structure
 ```
@@ -26,6 +63,7 @@ mammo-fm-study/
 |  |- 0_Model_Setup.py       # Download weights + load into memory
 |  |- 1_Inference.py         # Blinded inference + logging
 |  |- 2_Dashboard.py         # Metrics + ROC/AUC
+|  |- 3_Batch_Import.py      # Import + score a whole folder at once
 |- model/
 |  |- mammo_fm_wrapper.py    # Loads Mammo-FM  [FILL THE ADAPT BLOCK]
 |  |- loader.py              # Cached loader + HF download + device info
@@ -34,9 +72,14 @@ mammo-fm-study/
 |  |- dicom_utils.py         # Anonymize + preprocess DICOM
 |  |- data_store.py          # CSV backend
 |  |- db.py                  # SQLite backend
+|  |- ingest.py              # Folder scanning + image loading
+|  |- metrics.py             # Shared metric formulas (dashboard + CLI identical)
 |- db/
 |  |- schema.sql             # SQLite tables + analysis view
 |- pilot_test.py             # Single-image smoke test (run this FIRST)
+|- train_linear_probe.py     # Train the cancer head on labeled images
+|- compute_metrics.py        # Recompute all metrics from CSV (SPSS cross-check)
+|- SPSS_VERIFICATION.md      # How to verify every metric in SPSS / MedCalc
 |- seed_demo_db.py           # Synthetic data to preview the dashboard
 |- requirements.txt
 ```

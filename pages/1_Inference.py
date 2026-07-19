@@ -5,7 +5,7 @@ from datetime import date
 from PIL import Image
 from utils.dicom_utils import dicom_to_array, preprocess_for_model
 from utils.data_store import append_row, load_data
-from model.loader import get_model, weights_present
+from model.loader import get_model, weights_present, head_present
 
 st.title("🔬 Inference & Logging")
 st.info("Blinding: histopathology is NOT entered here. Record it later in "
@@ -13,6 +13,9 @@ st.info("Blinding: histopathology is NOT entered here. Record it later in "
 
 if not weights_present():
     st.warning("Model weights not found. Go to the ⚙️ Model Setup page first.")
+if not head_present():
+    st.warning("No cancer head trained yet — run train_linear_probe.py "
+               "(see ⚙️ Model Setup). Inference needs it to score malignancy.")
 
 
 c1, c2 = st.columns(2)

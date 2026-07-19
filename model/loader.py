@@ -22,6 +22,14 @@ def weights_size_mb(path=DEFAULT_WEIGHTS):
     return os.path.getsize(path) / (1024 * 1024) if os.path.exists(path) else 0.0
 
 
+HEAD_PATH = "model/weights/linear_head.joblib"
+
+
+def head_present(path=HEAD_PATH):
+    """True once a cancer head has been trained (train_linear_probe.py)."""
+    return os.path.exists(path)
+
+
 def download_weights(repo_id, filename, dest=DEFAULT_WEIGHTS):
     """Download weights from the Hugging Face Hub (needs internet).
 

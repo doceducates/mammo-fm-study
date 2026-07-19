@@ -2,8 +2,10 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve, roc_auc_score, cohen_kappa_score
+from sklearn.metrics import roc_curve, cohen_kappa_score
 from utils.data_store import load_data
+from utils.metrics import (norm_truth, birads_pos, diagnostic_metrics,
+                           metrics_table, spss_ready)
 
 st.title("📊 Analysis Dashboard")
 
@@ -15,16 +17,6 @@ if st.button("💾 Save histopathology edits"):
     edited.to_csv("data/results.csv", index=False)
     df = edited
     st.success("Saved.")
-
-
-def norm_truth(v):
-    s = str(v).strip().lower()
-    if s in ("malignant", "m", "1", "positive", "pos", "cancer"):
-        return 1
-    if s in ("benign", "b", "0", "negative", "neg"):
-        return 0
-    return np.nan
-
 
 work = df.copy()
 work["y_true"] = work["histopathology"].apply(norm_truth)
@@ -38,47 +30,28 @@ if len(work) < 5:
 else:
     thr = st.slider("Operating threshold", 0.0, 1.0, 0.5, 0.01)
     y = work["y_true"].astype(int).values
-    yhat = (work["prob"].values >= thr).astype(int)
+    prob = work["prob"].values
+    m = diagnostic_metrics(y, prob, threshold=thr)
 
-    TP = int(((yhat == 1) & (y == 1)).sum())
-    TN = int(((yhat == 0) & (y == 0)).sum())
-    FP = int(((yhat == 1) & (y == 0)).sum())
-    FN = int(((yhat == 0) & (y == 1)).sum())
-
-    def wilson(k, n):
-        if n == 0:
-            return (np.nan, np.nan, np.nan)
-        p, z = k / n, 1.96
-        d = 1 + z * z / n
-        centre = (p + z * z / (2 * n)) / d
-        half = z * np.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
-        return p, max(0, centre - half), min(1, centre + half)
-
-    sens, spec = wilson(TP, TP + FN), wilson(TN, TN + FP)
-    ppv, npv = wilson(TP, TP + FP), wilson(TN, TN + FN)
-    acc = wilson(TP + TN, TP + TN + FP + FN)
+    def pct(t):
+        return f"{t[0]*100:.1f}%", f"95% CI {t[1]*100:.1f}-{t[2]*100:.1f}"
 
     a, b, c = st.columns(3)
-    a.metric("Sensitivity", f"{sens[0]*100:.1f}%",
-             f"95% CI {sens[1]*100:.1f}-{sens[2]*100:.1f}")
-    b.metric("Specificity", f"{spec[0]*100:.1f}%",
-             f"95% CI {spec[1]*100:.1f}-{spec[2]*100:.1f}")
-    c.metric("Accuracy", f"{acc[0]*100:.1f}%",
-             f"95% CI {acc[1]*100:.1f}-{acc[2]*100:.1f}")
+    a.metric("Sensitivity", *pct(m["sensitivity"]))
+    b.metric("Specificity", *pct(m["specificity"]))
+    c.metric("Accuracy", *pct(m["accuracy"]))
     d, e, _ = st.columns(3)
-    d.metric("PPV", f"{ppv[0]*100:.1f}%",
-             f"95% CI {ppv[1]*100:.1f}-{ppv[2]*100:.1f}")
-    e.metric("NPV", f"{npv[0]*100:.1f}%",
-             f"95% CI {npv[1]*100:.1f}-{npv[2]*100:.1f}")
+    d.metric("PPV", *pct(m["ppv"]))
+    e.metric("NPV", *pct(m["npv"]))
 
     st.markdown("**2x2 contingency table**")
-    st.table(pd.DataFrame([[TP, FP], [FN, TN]],
+    st.table(pd.DataFrame([[m["TP"], m["FP"]], [m["FN"], m["TN"]]],
                           index=["AI +", "AI -"],
                           columns=["Histo + (malignant)", "Histo - (benign)"]))
 
-    if len(np.unique(y)) == 2:
-        auc = roc_auc_score(y, work["prob"].values)
-        fpr, tpr, _ = roc_curve(y, work["prob"].values)
+    if m["auc"] is not None:
+        auc = m["auc"]
+        fpr, tpr, _ = roc_curve(y, prob)
         fig, ax = plt.subplots(figsize=(4, 4))
         ax.plot(fpr, tpr, label=f"AUC = {auc:.3f}")
         ax.plot([0, 1], [0, 1], "--", color="gray")
@@ -89,16 +62,25 @@ else:
         st.pyplot(fig)
         st.metric("AUC", f"{auc:.3f}")
 
-    def birads_pos(v):
-        s = str(v).upper()
-        return 1 if s.startswith("4") or s == "5" else 0
-
     try:
         rad = work["radiologist_birads"].apply(birads_pos)
+        yhat = (prob >= thr).astype(int)
         kappa = cohen_kappa_score(rad, yhat)
         st.metric("Cohen's kappa (AI vs radiologist BI-RADS)", f"{kappa:.3f}")
     except Exception:
         pass
 
+    st.subheader("3. Export (for reporting + SPSS verification)")
+    st.download_button(
+        "⬇ Metrics summary (CSV)",
+        data=metrics_table(m).to_csv(index=False),
+        file_name="metrics_summary.csv")
+    st.download_button(
+        "⬇ SPSS-ready data (CSV)",
+        data=spss_ready(df).to_csv(index=False),
+        file_name="results_for_spss.csv",
+        help="Numeric-coded (1/0) columns. See SPSS_VERIFICATION.md.")
+
+st.subheader("Raw data export")
 st.download_button("⬇ Download results.csv",
                    data=df.to_csv(index=False), file_name="results.csv")
