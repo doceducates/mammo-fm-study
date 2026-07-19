@@ -28,12 +28,19 @@ class MammoFM:
 
     def _load_model(self, checkpoint_path):
         # ===== ADAPT TO REPO START =====
-        # Replace with the repo's real loader, e.g.:
-        #   from mammo_fm import build_model
-        #   model = build_model(name="mammo-fm-b", num_classes=1)
-        #   state = torch.load(checkpoint_path, map_location="cpu")
-        #   model.load_state_dict(state.get("model", state))
+        # The Mammo-FM checkpoints are .tar CLIP checkpoints:
+        #   image encoder = EfficientNet-B5, text encoder = ModernBERT.
+        # Use the official repo (github.com/batmanlab/Mammo-FM, which reuses
+        # Mammo-CLIP code) to build the model and load the IMAGE encoder, e.g.:
+        #   ckpt = torch.load(checkpoint_path, map_location="cpu")
+        #   model = build_efficientnet_b5(...)          # per repo
+        #   model.load_state_dict(ckpt["model"], strict=False)
         #   return model.to(self.device)
+        #
+        # IMPORTANT: the raw checkpoint has NO cancer classifier. To output a
+        # malignancy probability you must attach + train a linear head
+        # (linear probe) or fine-tune, as described in the paper. Until then
+        # predict() cannot return a real malignancy score.
         raise NotImplementedError(
             "Plug in the official Mammo-FM loader here (see repo README).")
         # ===== ADAPT TO REPO END =====

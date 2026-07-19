@@ -52,8 +52,15 @@ pip install -r requirements.txt
 ```
 
 ## Before real data (pilot)
-1. Download Mammo-FM weights into `model/weights/mammo_fm.pth`
-   (huggingface.co/batmanLab/Mammo-FM, Apache-2.0).
+1. Download the checkpoint **`Mammo-FM_BatmanlabTrained_CLIP.tar`** into
+   `model/weights/` (trained on BU + UPMC + EMBED -> best external
+   generalization; used in the repo's own eval scripts). The other file,
+   `Mammo-FM_ASU_Trained_CLIP.tar`, is the Mayo-only checkpoint.
+   Note: weights are under a **Custom Academic License** (non-commercial
+   academic research only, no clinical/diagnostic deployment) - fine for this
+   validation study; cite the paper. The image encoder is EfficientNet-B5 and
+   the checkpoint has **no cancer head**, so you must add a linear probe / fine-
+   tune to get malignancy scores.
 2. Fill the `# ===== ADAPT TO REPO =====` block in
    `model/mammo_fm_wrapper.py` using the repo README.
 3. Smoke-test on a PUBLIC image (not patient data):

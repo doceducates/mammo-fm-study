@@ -9,7 +9,9 @@ import streamlit as st
 import torch
 
 WEIGHTS_DIR = "model/weights"
-DEFAULT_WEIGHTS = os.path.join(WEIGHTS_DIR, "mammo_fm.pth")
+# Use the multi-institution checkpoint (BU + UPMC + EMBED) - best external
+# generalization and the one used in the repo's own eval scripts.
+DEFAULT_WEIGHTS = os.path.join(WEIGHTS_DIR, "Mammo-FM_BatmanlabTrained_CLIP.tar")
 
 
 def weights_present(path=DEFAULT_WEIGHTS):

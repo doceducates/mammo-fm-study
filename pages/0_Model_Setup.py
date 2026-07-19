@@ -34,8 +34,9 @@ else:
 with st.expander("⬇ Download from Hugging Face (needs internet)", expanded=not weights_present()):
     repo = st.text_input("Repo ID", "batmanLab/Mammo-FM")
     fname = st.text_input(
-        "Weights filename", "mammo_fm.pth",
-        help="Confirm the exact file name from the repo's Files tab.")
+        "Weights filename", "Mammo-FM_BatmanlabTrained_CLIP.tar",
+        help="Multi-institution checkpoint (BU+UPMC+EMBED). The other file, "
+             "Mammo-FM_ASU_Trained_CLIP.tar, is Mayo-only.")
     if st.button("Download weights"):
         try:
             with st.spinner("Downloading from Hugging Face… (may take a while)"):

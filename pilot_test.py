@@ -27,7 +27,8 @@ def main(path):
     img = preprocess_for_model(raw)
     print("Preprocessed image shape:", img.shape)
 
-    model = MammoFM(checkpoint_path="model/weights/mammo_fm.pth")
+    model = MammoFM(
+        checkpoint_path="model/weights/Mammo-FM_BatmanlabTrained_CLIP.tar")
     prob = model.predict(img)
     print(f"Malignancy probability: {prob:.4f}")
     print("Predicted class:", "Malignant" if prob >= 0.5 else "Benign")
