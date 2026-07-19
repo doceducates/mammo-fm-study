@@ -1,0 +1,10 @@
+# Never commit patient data or model weights
+data/
+model/weights/
+*.db
+*.csv
+*.dcm
+__pycache__/
+*.pyc
+.venv/
+.streamlit/secrets.toml
