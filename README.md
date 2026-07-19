@@ -9,6 +9,8 @@ histopathology at PGMI / Lahore General Hospital, Department of Radiology.
 > Standard."*
 
 ## Features
+- **Model Setup** - check GPU/VRAM, download Mammo-FM weights from Hugging Face,
+  and load/unload the model in memory (cached across pages).
 - **Inference & Logging** - anonymize a DICOM, run Mammo-FM, log a *blinded*
   malignancy score (histopathology is entered separately to preserve blinding).
 - **Analysis Dashboard** - 2x2 table, sensitivity / specificity / PPV / NPV /
@@ -21,10 +23,12 @@ histopathology at PGMI / Lahore General Hospital, Department of Radiology.
 mammo-fm-study/
 |- app.py                    # Home
 |- pages/
+|  |- 0_Model_Setup.py       # Download weights + load into memory
 |  |- 1_Inference.py         # Blinded inference + logging
 |  |- 2_Dashboard.py         # Metrics + ROC/AUC
 |- model/
 |  |- mammo_fm_wrapper.py    # Loads Mammo-FM  [FILL THE ADAPT BLOCK]
+|  |- loader.py              # Cached loader + HF download + device info
 |  |- weights/               # Put mammo_fm.pth here (not committed)
 |- utils/
 |  |- dicom_utils.py         # Anonymize + preprocess DICOM

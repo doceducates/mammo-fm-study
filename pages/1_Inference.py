@@ -5,16 +5,14 @@ from datetime import date
 from PIL import Image
 from utils.dicom_utils import dicom_to_array, preprocess_for_model
 from utils.data_store import append_row, load_data
+from model.loader import get_model, weights_present
 
 st.title("🔬 Inference & Logging")
 st.info("Blinding: histopathology is NOT entered here. Record it later in "
         "the Dashboard so the AI read stays blinded.")
 
-
-@st.cache_resource
-def get_model():
-    from model.mammo_fm_wrapper import MammoFM
-    return MammoFM(checkpoint_path="model/weights/mammo_fm.pth")
+if not weights_present():
+    st.warning("Model weights not found. Go to the ⚙️ Model Setup page first.")
 
 
 c1, c2 = st.columns(2)
