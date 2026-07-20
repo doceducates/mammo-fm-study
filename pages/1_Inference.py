@@ -14,8 +14,9 @@ st.info("Blinding: histopathology is NOT entered here. Record it later in "
 if not weights_present():
     st.warning("Model weights not found. Go to the ⚙️ Model Setup page first.")
 if not head_present():
-    st.warning("No cancer head trained yet — run train_linear_probe.py "
-               "(see ⚙️ Model Setup). Inference needs it to score malignancy.")
+    st.warning("No cancer head trained yet — go to the 🧠 Build Cancer Head "
+               "page (import CMMD + one click). Inference needs it to score "
+               "malignancy.")
 
 
 c1, c2 = st.columns(2)

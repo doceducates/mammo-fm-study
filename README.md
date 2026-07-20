@@ -76,6 +76,7 @@ mammo-fm-study/
 |  |- metrics.py             # Shared metric formulas (dashboard + CLI identical)
 |- db/
 |  |- schema.sql             # SQLite tables + analysis view
+|- check_gpu.py              # Diagnose 'No CUDA GPU detected'
 |- pilot_test.py             # Single-image smoke test (run this FIRST)
 |- train_linear_probe.py     # Train the cancer head on labeled images
 |- compute_metrics.py        # Recompute all metrics from CSV (SPSS cross-check)

@@ -91,8 +91,8 @@ if head_present():
 else:
     st.warning(
         "No cancer head yet. Mammo-FM alone only extracts features; it does "
-        "not output cancer/benign by itself. To create the head:\n\n"
-        "1. Put labeled images in `data/labeled/malignant/` and "
-        "`data/labeled/benign/`.\n"
-        "2. Run `python train_linear_probe.py` once.\n"
-        "3. Come back and press *Load / warm up model*.")
+        "not output cancer/benign by itself. Easiest way to create it:\n\n"
+        "1. Open the 🧠 **Build Cancer Head** page in the sidebar.\n"
+        "2. Import the free CMMD dataset there, then click *Train Cancer "
+        "Head* — no command line needed.\n"
+        "3. It reloads automatically and the app can score malignancy.")

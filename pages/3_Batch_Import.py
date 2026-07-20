@@ -32,8 +32,8 @@ if files:
     if not weights_present():
         st.warning("Model weights not found — go to ⚙️ Model Setup first.")
     if not head_present():
-        st.warning("No cancer head trained yet — run train_linear_probe.py. "
-                   "See ⚙️ Model Setup for how.")
+        st.warning("No cancer head trained yet — go to the 🧠 Build Cancer "
+                   "Head page (import CMMD + one click).")
 
     can_run = weights_present() and head_present()
     if st.button("▶ Run Mammo-FM on all images", type="primary",
