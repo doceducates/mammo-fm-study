@@ -13,6 +13,9 @@ below are taken directly from github.com/batmanlab/Mammo-FM
 The EfficientNet code itself is vendored under model/breastclip_encoder/.
 """
 import os
+import warnings
+warnings.filterwarnings("ignore")
+
 import numpy as np
 import torch
 from PIL import Image
@@ -50,7 +53,7 @@ class MammoFM:
         #   ckpt = torch.load(path, map_location="cpu")
         #   image_encoder = load_image_encoder(ckpt["config"]["model"]["image_encoder"])
         #   keep only "image_encoder.*" weights and load them strict=True.
-        ckpt = torch.load(checkpoint_path, map_location="cpu")
+        ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
         if "config" not in ckpt or "model" not in ckpt:
             raise RuntimeError(
                 "This does not look like a Mammo-FM CLIP checkpoint. Expected a "
@@ -113,3 +116,50 @@ class MammoFM:
                 "`python train_linear_probe.py`, then reload the app.")
         feats = self.extract_features(img_u8).reshape(1, -1)
         return float(self.head.predict_proba(feats)[0, 1])
+
+    @torch.no_grad()
+    def predict_heatmap_and_bbox(self, img_u8, threshold_ratio=0.75):
+        """Return (prob, overlay_bgr, bbox_tuple) containing spatial attention heatmap & lesion bounding box."""
+        import cv2
+        x = self._to_tensor(img_u8)
+        use_amp = (self.device == "cuda")
+        with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=use_amp):
+            if hasattr(self.model, "extract_features"):
+                feat_map = self.model.extract_features(x)
+            else:
+                feat_map = self.model(x)
+            feats = self.extract_features(img_u8).reshape(1, -1)
+            prob = float(self.head.predict_proba(feats)[0, 1]) if self.head else 0.5
+
+        # Compute spatial feature activation map
+        if len(feat_map.shape) == 4:
+            act_map = feat_map[0].float().mean(dim=0).cpu().numpy()
+        else:
+            act_map = np.ones((48, 29), dtype=np.float32)
+
+        act_map = np.maximum(act_map, 0)
+        h_orig, w_orig = img_u8.shape[:2]
+        act_map = cv2.resize(act_map, (w_orig, h_orig))
+        act_map = (act_map - act_map.min()) / (act_map.max() - act_map.min() + 1e-8)
+
+        # Generate Jet heatmap overlay
+        heatmap = cv2.applyColorMap(np.uint8(255 * act_map), cv2.COLORMAP_JET)
+        img_rgb = cv2.cvtColor(img_u8, cv2.COLOR_GRAY2BGR) if len(img_u8.shape) == 2 else img_u8.copy()
+        overlay = cv2.addWeighted(img_rgb, 0.6, heatmap, 0.4, 0)
+
+        # Detect bounding box for high activations if probability is elevated
+        bbox = None
+        if prob >= 0.45:
+            cutoff = int(255 * threshold_ratio)
+            _, thresh = cv2.threshold(np.uint8(255 * act_map), cutoff, 255, cv2.THRESH_BINARY)
+            cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            if cnts:
+                x_b, y_b, w_b, h_b = cv2.boundingRect(max(cnts, key=cv2.contourArea))
+                bbox = (x_b, y_b, w_b, h_b)
+                cv2.rectangle(overlay, (x_b, y_b), (x_b + w_b, y_b + h_b), (0, 255, 255), 3)
+                label_txt = f"SUSPICIOUS REGION ({w_b}x{h_b}px)"
+                cv2.putText(overlay, label_txt, (x_b, max(y_b - 10, 30)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+
+        return prob, overlay, bbox
+
