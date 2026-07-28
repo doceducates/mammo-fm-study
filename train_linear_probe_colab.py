@@ -188,18 +188,18 @@ for c in label_candidates:
         break
 
 if label_csv is None:
-    # Try finding_annotations.csv as fallback
-    for root, dirs, files in os.walk(VINDR_DIR):
-        for f in files:
-            if "finding" in f.lower() and f.endswith(".csv"):
-                label_csv = os.path.join(root, f)
-                break
-    if label_csv is None:
-        print("❌ Cannot find VinDr label CSV. Available files:")
-        for root, dirs, files in os.walk(VINDR_DIR):
-            for f in files:
-                if f.endswith(".csv"):
-                    print(f"   {os.path.join(root, f)}")
+    print("   ⚠️  Label CSV not found in local folders. Attempting to download directly via Kaggle API...")
+    os.system("kaggle datasets download vindr/vindr-mammo -f breast-level_annotations.csv --unzip")
+    
+    if not os.path.exists("breast-level_annotations.csv"):
+        print("   ⚠️  Official download failed (likely needs license agreement). Trying alternative public source...")
+        os.system("kaggle datasets download huuthocs/vindr-breast-cancer-dataset -f breast-level_annotations.csv --unzip")
+        
+    if os.path.exists("breast-level_annotations.csv"):
+        label_csv = "breast-level_annotations.csv"
+        print("   ✅ Successfully downloaded breast-level_annotations.csv")
+    else:
+        print("❌ Cannot find or download VinDr label CSV. Please attach 'vindr-mammo' dataset manually.")
         sys.exit(1)
 
 print(f"   Using: {label_csv}")
