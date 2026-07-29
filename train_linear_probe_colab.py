@@ -188,18 +188,45 @@ for c in label_candidates:
         break
 
 if label_csv is None:
-    print("   ⚠️  Label CSV not found in local folders. Attempting to download directly via Kaggle API...")
-    os.system("kaggle datasets download vindr/vindr-mammo -f breast-level_annotations.csv --unzip")
+    print("   ⚠️  Label CSV not found locally.")
     
-    if not os.path.exists("breast-level_annotations.csv"):
-        print("   ⚠️  Official download failed (likely needs license agreement). Trying alternative public source...")
-        os.system("kaggle datasets download huuthocs/vindr-breast-cancer-dataset -f breast-level_annotations.csv --unzip")
+    physionet_user = os.environ.get("PHYSIONET_USER")
+    physionet_pw = os.environ.get("PHYSIONET_PASSWORD")
+    
+    # Try fetching from Kaggle Secrets if not in environment variables
+    try:
+        from kaggle_secrets import UserSecretsClient
+        user_secrets = UserSecretsClient()
+        if not physionet_user:
+            try:
+                physionet_user = user_secrets.get_secret("PHYSIONET_USER")
+            except Exception:
+                pass
+        if not physionet_pw:
+            try:
+                physionet_pw = user_secrets.get_secret("PHYSIONET_PASSWORD")
+            except Exception:
+                pass
+    except ImportError:
+        pass
+
+    # Try PhysioNet direct download if credentials exist
+    if physionet_user and physionet_pw:
+        print("   🔑 PhysioNet credentials found! Downloading securely from official source...")
+        os.system(f"wget -q --user {physionet_user} --password '{physionet_pw}' -O breast-level_annotations.csv https://physionet.org/files/vindr-mammo/1.0.0/breast-level_annotations.csv")
+    else:
+        print("   Attempting to download via Kaggle API...")
+        os.system("kaggle datasets download vindr/vindr-mammo -f breast-level_annotations.csv --unzip")
         
+        if not os.path.exists("breast-level_annotations.csv"):
+            print("   ⚠️  Official Kaggle download failed. Trying alternative public source...")
+            os.system("kaggle datasets download huuthocs/vindr-breast-cancer-dataset -f breast-level_annotations.csv --unzip")
+            
     if os.path.exists("breast-level_annotations.csv"):
         label_csv = "breast-level_annotations.csv"
         print("   ✅ Successfully downloaded breast-level_annotations.csv")
     else:
-        print("❌ Cannot find or download VinDr label CSV. Please attach 'vindr-mammo' dataset manually.")
+        print("❌ Cannot find or download VinDr label CSV.")
         sys.exit(1)
 
 print(f"   Using: {label_csv}")
