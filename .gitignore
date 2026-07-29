@@ -1,6 +1,10 @@
 # Never commit patient data or model weights
 data/
-model/weights/
+model/weights/Mammo-FM_BatmanlabTrained_CLIP.tar
+data/test_reports.db
+data/validation_reports.db
+data/gold_standard.db
+data/baseline_reports.db
 *.db
 *.csv
 *.dcm
