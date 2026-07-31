@@ -53,16 +53,20 @@ edited = st.data_editor(
         "serial_no": st.column_config.NumberColumn("S.No", width="small"),
         "patient_name": st.column_config.TextColumn("Patient Name", width="medium"),
         "anonymized_id": st.column_config.TextColumn("Case ID / File", width="medium"),
+        "date": st.column_config.DateColumn("Exam Date", format="YYYY-MM-DD"),
+        "age": st.column_config.NumberColumn("Age (Yrs)", format="%d", min_value=18, max_value=110),
         "breast_side": st.column_config.SelectboxColumn("View Projection", options=["Right Breast", "Left Breast", "Bilateral", "Unspecified"]),
         "lesion_side": st.column_config.SelectboxColumn("Lesion Laterality", options=["Right Breast", "Left Breast", "Bilateral", "None / Normal"]),
         "lesion_quadrant": st.column_config.SelectboxColumn("Lesion Quadrant", options=["Upper Outer (UOQ)", "Upper Inner (UIQ)", "Lower Outer (LOQ)", "Lower Inner (LIQ)", "Subareolar", "Central", "N/A"]),
         "radiological_finding": st.column_config.SelectboxColumn("Finding Type", options=["Mass / Opacity", "Microcalcifications", "Architectural Distortion", "Asymmetry", "Normal"]),
         "breast_density": st.column_config.SelectboxColumn("Density (BI-RADS)", options=["A", "B", "C", "D"]),
+        "lesion_size_mm": st.column_config.NumberColumn("Lesion Size (mm)", format="%.1f", min_value=0.0, max_value=200.0),
         "radiologist_birads": st.column_config.SelectboxColumn("Radiologist BI-RADS", options=["0", "1", "2", "3", "4A", "4B", "4C", "5"]),
         "mammo_fm_prob": st.column_config.NumberColumn("AI Malignancy Score", format="%.4f"),
         "mammo_fm_class": st.column_config.TextColumn("AI Class"),
         "histopathology": st.column_config.SelectboxColumn("Histopathology (Gold Standard)", options=["Malignant", "Benign", "Normal", ""]),
         "histopath_type": st.column_config.SelectboxColumn("Tumor Subtype", options=["Invasive Ductal Carcinoma (IDC)", "Invasive Lobular Carcinoma (ILC)", "DCIS", "Fibroadenoma", "Fibrocystic Change", "Normal", ""]),
+        "examiner": st.column_config.TextColumn("Examiner / Radiologist", width="medium"),
     }
 )
 

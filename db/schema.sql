@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS study_case (
     enrolment_date     TEXT,                             -- ISO YYYY-MM-DD
     age                INTEGER CHECK (age >= 0 AND age <= 120),
     breast_side        TEXT    CHECK (breast_side IN ('Right','Left','Bilateral')),
+    lesion_quadrant    TEXT,                             -- e.g. UOQ, UIQ, LOQ, LIQ, Subareolar
+    radiological_finding TEXT,                           -- e.g. Mass, Microcalcifications, Distortion
     breast_density     TEXT    CHECK (breast_density IN ('A','B','C','D')),
     lesion_size_mm     REAL,
     radiologist_birads TEXT,                             -- 0,1,2,3,4A,4B,4C,5

@@ -47,8 +47,10 @@ def confusion(y_true, y_pred):
     return TP, TN, FP, FN
 
 
-def diagnostic_metrics(y_true, prob, threshold=0.5):
-    """All diagnostic metrics + 2x2 counts at a given probability threshold."""
+def diagnostic_metrics(y_true, prob, y_rad=None, threshold=0.5):
+    """All diagnostic metrics + 2x2 counts at a given probability threshold.
+    Optionally computes Cohen's kappa if radiologist BI-RADS (y_rad) is provided.
+    """
     y_true = np.asarray(y_true).astype(int)
     prob = np.asarray(prob, dtype=float)
     y_pred = (prob >= threshold).astype(int)
@@ -63,10 +65,15 @@ def diagnostic_metrics(y_true, prob, threshold=0.5):
         "npv": wilson(TN, TN + FN),
         "accuracy": wilson(TP + TN, TP + TN + FP + FN),
         "auc": None,
+        "kappa": None,
     }
     if len(np.unique(y_true)) == 2:
         from sklearn.metrics import roc_auc_score
         out["auc"] = float(roc_auc_score(y_true, prob))
+    if y_rad is not None:
+        from sklearn.metrics import cohen_kappa_score
+        y_rad_clean = np.asarray(y_rad).astype(int)
+        out["kappa"] = float(cohen_kappa_score(y_rad_clean, y_pred))
     return out
 
 
@@ -85,6 +92,11 @@ def metrics_table(m):
     if m.get("auc") is not None:
         df = pd.concat([df, pd.DataFrame([{
             "Metric": "AUC", "Value (%)": round(m["auc"] * 100, 1),
+            "95% CI low (%)": np.nan, "95% CI high (%)": np.nan}])],
+            ignore_index=True)
+    if m.get("kappa") is not None:
+        df = pd.concat([df, pd.DataFrame([{
+            "Metric": "Cohen's Kappa (κ)", "Value (%)": round(m["kappa"], 3),
             "95% CI low (%)": np.nan, "95% CI high (%)": np.nan}])],
             ignore_index=True)
     return df
