@@ -24,10 +24,12 @@ def load_data(path="data/results.csv"):
     return pd.DataFrame(columns=COLUMNS)
 
 
-def append_row(row, path="data/results.csv"):
+def save_data(df, path="data/results.csv"):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    df = load_data(path)
-    df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
-    df.to_csv(path, index=False)
+    for col in COLUMNS:
+        if col not in df.columns:
+            df[col] = ""
+    df[COLUMNS].to_csv(path, index=False)
     return df
+
 

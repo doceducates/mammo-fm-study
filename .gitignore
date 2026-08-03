@@ -1,14 +1,78 @@
-# Never commit patient data or model weights
+# ==========================================
+# Patient Data & Model Weights / Research DBs
+# ==========================================
 data/
 model/weights/Mammo-FM_BatmanlabTrained_CLIP.tar
-data/test_reports.db
-data/validation_reports.db
-data/gold_standard.db
-data/baseline_reports.db
+data/*.db
 *.db
 *.csv
 *.dcm
-__pycache__/
-*.pyc
-.venv/
+*.zip
+temp_*
+scratch/
+
+# ==========================================
+# Node.js & Web UI Dependencies / Builds
+# ==========================================
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+build/
+**/build/
+.next/
+.nuxt/
+.vite/
+.svelte-kit/
+.astro/
+out/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# Environment Variables & Secrets / Credentials
+# ==========================================
+.env
+.env.*
+!.env.example
+*.env
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+credentials.json
 .streamlit/secrets.toml
+.hermes/
+
+# ==========================================
+# Python Caches & Environments
+# ==========================================
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+ENV/
+env/
+.mypy_cache/
+.ipynb_checkpoints/
+*.egg-info/
+
+# ==========================================
+# IDE & System Files
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.log

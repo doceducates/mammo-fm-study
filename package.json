@@ -1,0 +1,15 @@
+{
+  "name": "mammo-fm-study",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n \"API,VITE\" -c \"magenta,cyan\" \"python api.py\" \"npm --prefix new_ui run dev:frontend\"",
+    "dev:backend": "python api.py",
+    "dev:frontend": "npm --prefix new_ui run dev:frontend",
+    "build": "npm --prefix new_ui run build"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.4"
+  }
+}
